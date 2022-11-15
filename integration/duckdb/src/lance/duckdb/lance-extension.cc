@@ -19,6 +19,7 @@
 #include "lance/duckdb/list_functions.h"
 #include "lance/duckdb/ml/functions.h"
 #include "lance/duckdb/vector_functions.h"
+#include "lance/duckdb/video_functions.h"
 
 class LanceExtension : public ::duckdb::Extension {
  public:
@@ -44,7 +45,14 @@ class LanceExtension : public ::duckdb::Extension {
       catalog.CreateTableFunction(context, func.get());
     }
 
+    for (auto &func : lance::duckdb::GetVideoTableFunctions()) {
+      catalog.CreateTableFunction(context, func.get());
+    }
+
     con.Commit();
+
+    auto &config = ::duckdb::DBConfig::GetConfig(*db.instance);
+    config.replacement_scans.emplace_back(::lance::duckdb::VideoScanReplacement);
   }
 
   std::string Name() override { return std::string("lance"); }
